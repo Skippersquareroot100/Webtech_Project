@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+  
+    <form id="login-form">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <input type="button" value="Login" onclick="submitLoginForm()" />
+        <div id="error-message"></div>
+
+        
+        <p >
+            Don't have an account? <a href="signup.html">Sign up here</a>
+        </p>
+    </form>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://images.pexels.com/photos/8112172/pexels-photo-8112172.jpeg?cs=srgb&dl=pexels-pavel-danilyuk-8112172.jpg&fm=jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        form {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="button"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="button"]:hover {
+            background-color: #45a049;
+        }
+        #error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <script>
+        function submitLoginForm() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+
+            errorMessage.textContent = '';
+
+            if (!username || !password) {
+                errorMessage.textContent = 'All fields are required!';
+                return;
+            }
+
+            const xhttp = new XMLHttpRequest();
+            xhttp.open('POST', '../controller/logincheck.php', true);
+            xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            const data = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+            xhttp.send(data);
+
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4) {
+                    if (this.status === 200) {
+                        try {
+                            const response = JSON.parse(this.responseText);
+                            if (response.success) {
+                                window.location.href = response.redirect_url;
+                            } else {
+                                errorMessage.textContent = response.message;
+                            }
+                        } catch (e) {
+                            errorMessage.textContent = 'An unexpected error occurred.';
+                        }
+                    } else {
+                        errorMessage.textContent = 'Failed to submit form. Please try again.';
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+</head>
+
+<body>
+    <form id="signup-form">
+        <h1>Create an Account</h1>
+        <div id="error-message"></div>
+
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required />
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required />
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required />
+
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" name="confirm_password" required />
+
+        <label for="role">Role:</label>
+        <select id="role" name="role" required>
+            <option value="applicant">Applicant</option>
+            <option value="employee">Employee</option>
+        </select>
+
+        <input type="button" value="Sign Up" onclick="submitForm()" />
+    </form>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://images.pexels.com/photos/8112172/pexels-photo-8112172.jpeg?cs=srgb&dl=pexels-pavel-danilyuk-8112172.jpg&fm=jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input[type="button"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+        }
+
+        #error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <script>
+        function submitForm() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const role = document.getElementById('role').value;
+            const errorMessage = document.getElementById('error-message');
+
+            errorMessage.textContent = '';
+
+            if (!username || !email || !password || !confirmPassword) {
+                errorMessage.textContent = 'All fields are required!';
+                return;
+            }
+
+            const usernamePattern = /^[a-zA-Z]{2,}$/;
+            if (!usernamePattern.test(username)) {
+                errorMessage.textContent = 'Username must be at least 2 characters long and contain only letters.';
+                return;
+            }
+
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailPattern.test(email)) {
+                errorMessage.textContent = 'Please enter a valid email address.';
+                return;
+            }
+
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordPattern.test(password)) {
+                errorMessage.textContent = 'Password must be at least 8 characters long and contain a mix of upper and lower case letters, and numbers.';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match!';
+                return;
+            }
+
+            const xhttp = new XMLHttpRequest();
+            xhttp.open('POST', '../controller/signupcheck.php', true);
+            xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+            const data = `username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&confirm_password=${encodeURIComponent(confirmPassword)}&role=${encodeURIComponent(role)}`;
+            xhttp.send(data);
+
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    try {
+                        const response = JSON.parse(this.responseText);
+                        if (response.success) {
+                            alert('Registration successful! Redirecting to login page.');
+                            window.location.href = '../view/login.html';
+                        } else {
+                            errorMessage.textContent = response.message;
+                        }
+                    } catch (e) {
+                        errorMessage.textContent = 'An unexpected error occurred.';
+                    }
+                } else if (this.readyState === 4) {
+                    errorMessage.textContent = 'Failed to submit form. Please try again.';
+                }
+            };
+
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 900px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 6px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button.approve {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button.reject {
+            background-color: #f44336;
+            color: white;
+        }
+        button.ban {
+            background-color: #FF9800;
+            color: white;
+        }
+        #logout-button {
+            padding: 8px 20px;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+        #logout-button:hover {
+            background-color: #c0392b;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome, <?php echo $_SESSION['username']; ?> (Moderator)</h1>
+        </div>
+
+        <div>
+            <h2>Manage Pending Job Posts</h2>
+            <ul id="job-list"></ul>
+        </div>
+
+        <div>
+            <h2>Manage Users</h2>
+            <ul id="user-list"></ul>
+        </div>
+
+        <button id="logout-button">Logout</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchJobs();
+            fetchUsers();
+            
+            document.getElementById('logout-button').addEventListener('click', function() {
+                window.location.href = "../controller/logout.php";
+            });
+        });
+
+        function fetchJobs() {
+            fetch('../controller/moderator_dashboardcheck.php?action=fetch_jobs')
+                .then(response => response.json())
+                .then(data => {
+                    const jobList = document.getElementById('job-list');
+                    if (data.jobs.length > 0) {
+                        data.jobs.forEach(job => {
+                            const listItem = document.createElement('li');
+                            listItem.innerHTML = `
+                                ${job.title} - ${job.description} 
+                                <em>(${job.location})</em> 
+                                <button class="approve" onclick="approveJob(${job.id})">Approve</button>
+                                <button class="reject" onclick="rejectJob(${job.id})">Reject</button>
+                            `;
+                            jobList.appendChild(listItem);
+                        });
+                    } else {
+                        jobList.innerHTML = '<li>No pending job posts.</li>';
+                    }
+                });
+        }
+
+        function fetchUsers() {
+            fetch('../controller/moderator_dashboardcheck.php?action=fetch_users')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('user-list');
+                    if (data.users.length > 0) {
+                        data.users.forEach(user => {
+                            const listItem = document.createElement('li');
+                            listItem.innerHTML = `
+                                ${user.username} (${user.role}) 
+                                <button class="ban" onclick="banUser(${user.id})">Ban User</button>
+                            `;
+                            userList.appendChild(listItem);
+                        });
+                    } else {
+                        userList.innerHTML = '<li>No users available for moderation.</li>';
+                    }
+                });
+        }
+
+        function approveJob(jobId) {
+            const data = { approve_job_id: jobId };
+            sendPostRequest(data);
+        }
+
+        function rejectJob(jobId) {
+            const data = { reject_job_id: jobId };
+            sendPostRequest(data);
+        }
+
+        function banUser(userId) {
+            const data = { ban_user_id: userId };
+            sendPostRequest(data);
+        }
+
+        function sendPostRequest(data) {
+            fetch('../controller/moderator_dashboardcheck.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Action completed successfully!');
+                    location.reload();
+                } else {
+                    alert('An error occurred!');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

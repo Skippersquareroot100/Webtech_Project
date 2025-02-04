@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+</head>
+<body>
+
+    <h1>Welcome, <span id="username"></span> (Employee)</h1>
+
+    <h2>Post a Job</h2>
+    <form id="job-form">
+        <label>Job Title:</label>
+        <input type="text" name="title" required><br>
+
+        <label>Description:</label>
+        <textarea name="description" rows="4" required></textarea><br>
+
+        <label>Location:</label>
+        <select name="location" required>
+            <option value="Dhaka">Dhaka</option>
+            <option value="Chattogram">Chattogram</option>
+            <option value="Rajshahi">Rajshahi</option>
+            <option value="Khulna">Khulna</option>
+            <option value="Barishal">Barishal</option>
+            <option value="Sylhet">Sylhet</option>
+            <option value="Rangpur">Rangpur</option>
+            <option value="Mymensingh">Mymensingh</option>
+        </select><br>
+
+        <button type="submit">Post Job</button>
+    </form>
+
+    <h2>Your Jobs</h2>
+    <ul id="jobs-list"></ul>
+
+    <button id="logout-btn">Logout</button>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #logout-btn {
+            padding: 8px 15px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            border-radius: 5px;
+            width: auto;
+        }
+
+        #logout-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
+
+    <script>
+        document.getElementById("logout-btn").addEventListener("click", function() {
+            window.location.href = "../controller/logout.php";
+        });
+
+        document.getElementById("job-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            const data = {
+                title: formData.get("title"),
+                description: formData.get("description"),
+                location: formData.get("location")
+            };
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "../controller/employee_dashboardcheck.php", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        alert("Job posted successfully.");
+                        window.location.reload();
+                    } else {
+                        alert("Error posting job: " + response.message);
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        });
+
+        function fetchJobs() {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "../controller/fetch_jobs.php", true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const jobs = JSON.parse(xhr.responseText);
+                    const jobsList = document.getElementById("jobs-list");
+                    jobsList.innerHTML = "";
+                    jobs.forEach(function(job) {
+                        const jobItem = document.createElement("li");
+                        jobItem.textContent = job.title + " - " + job.description + " (" + job.location + ")";
+                        jobsList.appendChild(jobItem);
+                    });
+                }
+            };
+            xhr.send();
+        }
+
+        window.onload = function() {
+            fetchJobs();
+        };
+    </script>
+
+</body>
+</html>
